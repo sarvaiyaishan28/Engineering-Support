@@ -1,0 +1,269 @@
+// Prisma Schema for Allocations.com Engineering Support Ticket Tool
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  ENGINEERING
+  SUPPORT
+  PRODUCT
+  VIEWER
+}
+
+enum TicketStatus {
+  OPEN
+  PENDING
+  IN_PROGRESS
+  QA_REVIEW
+  BLOCKED
+  RESOLVED
+  CLOSED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum Category {
+  BACKEND
+  FRONTEND
+  API
+  INFRASTRUCTURE
+  DATABASE
+  PAYMENTS
+  AUTHENTICATION
+  DEPLOYMENT
+  BUG
+  FEATURE_REQUEST
+  PERFORMANCE
+}
+
+enum Environment {
+  PRODUCTION
+  STAGING
+  DEVELOPMENT
+}
+
+enum NotificationType {
+  TICKET_ASSIGNED
+  NEW_COMMENT
+  MENTIONED
+  STATUS_CHANGED
+  SLA_BREACHED
+  SLA_WARNING
+}
+
+model User {
+  id            String    @id @default(uuid())
+  name          String
+  email         String    @unique
+  passwordHash  String    @map("password_hash")
+  role          Role      @default(VIEWER)
+  avatarUrl     String?   @map("avatar_url")
+  department    String?
+  isActive      Boolean   @default(true) @map("is_active")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  reportedTickets  Ticket[]       @relation("Reporter")
+  assignedTickets  Ticket[]       @relation("Assignee")
+  comments         Comment[]
+  activities       Activity[]
+  notifications    Notification[]
+  attachments      Attachment[]
+  watchingTickets  TicketWatcher[]
+
+  @@map("users")
+}
+
+model Ticket {
+  id            String        @id @default(uuid())
+  ticketNumber  String        @unique @map("ticket_number")
+  title         String
+  description   String
+  status        TicketStatus  @default(OPEN)
+  priority      Priority      @default(MEDIUM)
+  category      Category
+  environment   Environment   @default(PRODUCTION)
+  tags          String[]      @default([])
+  impact        String?
+  stepsToReproduce String?    @map("steps_to_reproduce")
+  browserInfo   String?       @map("browser_info")
+  
+  // SLA
+  slaDueAt      DateTime?     @map("sla_due_at")
+  slaBreached   Boolean       @default(false) @map("sla_breached")
+  
+  // Relations
+  reporterId    String        @map("reporter_id")
+  reporter      User          @relation("Reporter", fields: [reporterId], references: [id])
+  assigneeId    String?       @map("assignee_id")
+  assignee      User?         @relation("Assignee", fields: [assigneeId], references: [id])
+  
+  comments      Comment[]
+  attachments   Attachment[]
+  activities    Activity[]
+  watchers      TicketWatcher[]
+  linkedTickets TicketLink[]  @relation("SourceTicket")
+  linkedFrom    TicketLink[]  @relation("TargetTicket")
+  
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+  resolvedAt    DateTime?     @map("resolved_at")
+
+  @@index([status])
+  @@index([priority])
+  @@index([assigneeId])
+  @@index([reporterId])
+  @@index([createdAt])
+  @@map("tickets")
+}
+
+model Comment {
+  id          String    @id @default(uuid())
+  message     String
+  isInternal  Boolean   @default(false) @map("is_internal")
+  
+  ticketId    String    @map("ticket_id")
+  ticket      Ticket    @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  userId      String    @map("user_id")
+  user        User      @relation(fields: [userId], references: [id])
+  
+  // For threaded comments
+  parentId    String?   @map("parent_id")
+  parent      Comment?  @relation("CommentThread", fields: [parentId], references: [id])
+  replies     Comment[] @relation("CommentThread")
+  
+  reactions   CommentReaction[]
+  
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@index([ticketId])
+  @@map("comments")
+}
+
+model CommentReaction {
+  id        String   @id @default(uuid())
+  emoji     String
+  commentId String   @map("comment_id")
+  comment   Comment  @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  userId    String   @map("user_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([commentId, userId, emoji])
+  @@map("comment_reactions")
+}
+
+model Attachment {
+  id          String   @id @default(uuid())
+  fileName    String   @map("file_name")
+  fileUrl     String   @map("file_url")
+  fileSize    Int      @map("file_size")
+  mimeType    String   @map("mime_type")
+  
+  ticketId    String   @map("ticket_id")
+  ticket      Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  uploadedById String  @map("uploaded_by")
+  uploadedBy  User     @relation(fields: [uploadedById], references: [id])
+  
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@index([ticketId])
+  @@map("attachments")
+}
+
+model Activity {
+  id        String   @id @default(uuid())
+  action    String
+  metadata  Json?
+  
+  ticketId  String   @map("ticket_id")
+  ticket    Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id])
+  
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([ticketId])
+  @@index([createdAt])
+  @@map("activities")
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  type      NotificationType
+  title     String
+  message   String?
+  ticketId  String?          @map("ticket_id")
+  isRead    Boolean          @default(false) @map("is_read")
+  
+  userId    String           @map("user_id")
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime         @default(now()) @map("created_at")
+
+  @@index([userId, isRead])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+model TicketWatcher {
+  id        String   @id @default(uuid())
+  ticketId  String   @map("ticket_id")
+  ticket    Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([ticketId, userId])
+  @@map("ticket_watchers")
+}
+
+model TicketLink {
+  id            String   @id @default(uuid())
+  sourceId      String   @map("source_id")
+  source        Ticket   @relation("SourceTicket", fields: [sourceId], references: [id], onDelete: Cascade)
+  targetId      String   @map("target_id")
+  target        Ticket   @relation("TargetTicket", fields: [targetId], references: [id], onDelete: Cascade)
+  linkType      String   @map("link_type") // "blocks", "blocked_by", "relates_to", "duplicates"
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@unique([sourceId, targetId])
+  @@map("ticket_links")
+}
+
+model SLARule {
+  id              String   @id @default(uuid())
+  priority        Priority @unique
+  responseHours   Int      @map("response_hours")
+  resolutionHours Int      @map("resolution_hours")
+  isActive        Boolean  @default(true) @map("is_active")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@map("sla_rules")
+}
+
+model Integration {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  type        String   // "slack", "github", "jira", etc.
+  config      Json?
+  isActive    Boolean  @default(false) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("integrations")
+}

@@ -115,7 +115,7 @@ export const mockTickets: Ticket[] = [
     ticketNumber: 'ALLOC-1001',
     title: 'Payment gateway timeout during peak hours',
     description: 'Users are experiencing payment failures due to gateway timeouts when traffic exceeds 1000 concurrent requests. The Stripe webhook is returning 504 errors intermittently.',
-    status: 'CRITICAL' as unknown as 'IN_PROGRESS',
+    status: 'IN_PROGRESS',
     priority: 'CRITICAL',
     category: 'PAYMENTS',
     environment: 'PRODUCTION',

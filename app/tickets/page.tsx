@@ -14,12 +14,18 @@ import {
   Clock,
   CheckCircle2,
   AlertTriangle,
-  ChevronDown
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  Users,
+  FileText,
+  TrendingUp,
+  RefreshCw
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { Checkbox } from '@/components/ui/checkbox'
+
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import {
   Select,
@@ -35,15 +41,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
-import { Card } from '@/components/ui/card'
+
 import { mockTickets, mockUsers } from '@/lib/mock-data'
 import { statusConfig, priorityConfig, categoryConfig, getSLAStatus } from '@/lib/types'
 import type { Ticket, TicketStatus, Priority, Category } from '@/lib/types'
@@ -51,6 +49,27 @@ import { cn } from '@/lib/utils'
 
 type SortField = 'ticketNumber' | 'title' | 'priority' | 'status' | 'createdAt'
 type SortDirection = 'asc' | 'desc'
+
+// Status tab configuration matching the Allocations dashboard style
+const statusTabs: { key: TicketStatus | 'all'; label: string; bgColor: string }[] = [
+  { key: 'all', label: 'All', bgColor: 'bg-[#475569] text-white' },
+  { key: 'OPEN', label: 'Open', bgColor: 'bg-[#F97316] text-white' },
+  { key: 'IN_PROGRESS', label: 'In Progress', bgColor: 'bg-[#10B65C] text-white' },
+  { key: 'QA_REVIEW', label: 'QA Review', bgColor: 'bg-[#3B82F6] text-white' },
+  { key: 'RESOLVED', label: 'Resolved', bgColor: 'bg-[#8B5CF6] text-white' },
+  { key: 'CLOSED', label: 'Closed', bgColor: 'bg-[#14B8A6] text-white' },
+  { key: 'BLOCKED', label: 'Blocked', bgColor: 'bg-[#DC2626] text-white' },
+]
+
+// Category tabs
+const categoryTabs = [
+  { key: 'all', label: 'All' },
+  { key: 'BUG', label: 'Bug' },
+  { key: 'FEATURE_REQUEST', label: 'Feature' },
+  { key: 'PERFORMANCE', label: 'Performance' },
+]
+
+const ITEMS_PER_PAGE = 10
 
 export default function TicketsPage() {
   const router = useRouter()
@@ -65,8 +84,19 @@ export default function TicketsPage() {
   const [sortField, setSortField] = useState<SortField>('createdAt')
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc')
   const [selectedTickets, setSelectedTickets] = useState<Set<string>>(new Set())
+  const [currentPage, setCurrentPage] = useState(1)
+  const [activeFilters, setActiveFilters] = useState(0)
 
   const engineers = mockUsers.filter(u => u.role === 'ENGINEERING' || u.role === 'ADMIN')
+
+  // Calculate active filter count
+  useMemo(() => {
+    let count = 0
+    if (priorityFilter !== 'all') count++
+    if (categoryFilter !== 'all') count++
+    if (assigneeFilter !== 'all') count++
+    setActiveFilters(count)
+  }, [priorityFilter, categoryFilter, assigneeFilter])
 
   const filteredTickets = useMemo(() => {
     let result = [...mockTickets]
@@ -128,6 +158,24 @@ export default function TicketsPage() {
     return result
   }, [searchQuery, statusFilter, priorityFilter, categoryFilter, assigneeFilter, sortField, sortDirection])
 
+  // Pagination
+  const totalPages = Math.ceil(filteredTickets.length / ITEMS_PER_PAGE)
+  const paginatedTickets = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE
+    return filteredTickets.slice(start, start + ITEMS_PER_PAGE)
+  }, [filteredTickets, currentPage])
+
+  // Stats
+  const stats = useMemo(() => {
+    const openCount = mockTickets.filter(t => t.status === 'OPEN' || t.status === 'IN_PROGRESS').length
+    const totalReporters = new Set(mockTickets.map(t => t.reporterId)).size
+    return {
+      totalTickets: mockTickets.length,
+      openTickets: openCount,
+      totalReporters: totalReporters
+    }
+  }, [])
+
   const handleSort = (field: SortField) => {
     if (sortField === field) {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
@@ -179,276 +227,400 @@ export default function TicketsPage() {
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex items-center justify-between"
+        className="flex items-start justify-between"
       >
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Tickets</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-xl font-semibold tracking-tight text-[#0F172A]">Ticket Dashboard</h1>
+          <p className="text-sm text-[#64748B]">
             Manage and track engineering support tickets
           </p>
         </div>
-        <Button onClick={() => router.push('/tickets/new')} className="gap-2">
-          <Plus className="h-4 w-4" />
-          Create Ticket
-        </Button>
       </motion.div>
 
-      {/* Filters */}
-      <Card className="p-4">
-        <div className="flex flex-wrap items-center gap-4">
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Open Tickets - Green Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="bg-[#10B65C] rounded-xl p-5 text-white"
+        >
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-white/90 text-xs font-semibold uppercase tracking-wider">OPEN TICKETS</p>
+              <p className="text-3xl font-bold mt-2">{stats.openTickets}</p>
+            </div>
+            <TrendingUp className="h-6 w-6 text-white/70" />
+          </div>
+        </motion.div>
+
+        {/* Total Reporters Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+          className="bg-white border border-[#E5E7EB] rounded-xl p-5"
+        >
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-[#64748B] text-xs font-semibold uppercase tracking-wider">TOTAL REPORTERS</p>
+              <p className="text-3xl font-bold text-[#0F172A] mt-2">{stats.totalReporters}</p>
+            </div>
+            <Users className="h-6 w-6 text-[#94A3B8]" />
+          </div>
+        </motion.div>
+
+        {/* Total Tickets Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="bg-white border border-[#E5E7EB] rounded-xl p-5"
+        >
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-[#64748B] text-xs font-semibold uppercase tracking-wider">TOTAL TICKETS</p>
+              <p className="text-3xl font-bold text-[#0F172A] mt-2">{stats.totalTickets}</p>
+            </div>
+            <FileText className="h-6 w-6 text-[#94A3B8]" />
+          </div>
+        </motion.div>
+      </div>
+
+      {/* Filters Row */}
+      <div className="space-y-3">
+        {/* Search and Status Filter Row */}
+        <div className="flex flex-wrap items-center gap-3">
           {/* Search */}
-          <div className="relative flex-1 min-w-[200px] max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <div className="relative min-w-[200px] max-w-[280px]">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#94A3B8]" />
             <Input
               placeholder="Search tickets..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
+              onChange={(e) => {
+                setSearchQuery(e.target.value)
+                setCurrentPage(1)
+              }}
+              className="pl-10 bg-white border-[#E5E7EB] rounded-lg h-9 focus:border-[#10B65C] focus:ring-[#10B65C]"
             />
           </div>
 
-          {/* Status Filter */}
-          <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as TicketStatus | 'all')}>
-            <SelectTrigger className="w-[140px]">
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              {Object.entries(statusConfig).map(([key, config]) => (
-                <SelectItem key={key} value={key}>{config.label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {/* Filter Button with Count */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-1.5 rounded-lg border-[#E5E7EB] h-9">
+                <Filter className="h-3.5 w-3.5" />
+                Filter
+                {activeFilters > 0 && (
+                  <span className="text-xs">({activeFilters})</span>
+                )}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-56 rounded-xl">
+              <div className="p-2">
+                <p className="text-xs font-semibold text-[#64748B] mb-2">Priority</p>
+                <Select value={priorityFilter} onValueChange={(v) => setPriorityFilter(v as Priority | 'all')}>
+                  <SelectTrigger className="rounded-lg">
+                    <SelectValue placeholder="All" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Priority</SelectItem>
+                    {Object.entries(priorityConfig).map(([key, config]) => (
+                      <SelectItem key={key} value={key}>{config.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <DropdownMenuSeparator />
+              <div className="p-2">
+                <p className="text-xs font-semibold text-[#64748B] mb-2">Assignee</p>
+                <Select value={assigneeFilter} onValueChange={setAssigneeFilter}>
+                  <SelectTrigger className="rounded-lg">
+                    <SelectValue placeholder="All" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Assignees</SelectItem>
+                    <SelectItem value="unassigned">Unassigned</SelectItem>
+                    {engineers.map((user) => (
+                      <SelectItem key={user.id} value={user.id}>{user.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
-          {/* Priority Filter */}
-          <Select value={priorityFilter} onValueChange={(v) => setPriorityFilter(v as Priority | 'all')}>
-            <SelectTrigger className="w-[140px]">
-              <SelectValue placeholder="Priority" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Priority</SelectItem>
-              {Object.entries(priorityConfig).map(([key, config]) => (
-                <SelectItem key={key} value={key}>{config.label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {/* Status Tabs - Inline pills */}
+          <div className="flex flex-wrap gap-1.5">
+            {statusTabs.map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => {
+                  setStatusFilter(tab.key)
+                  setCurrentPage(1)
+                }}
+                className={cn(
+                  'px-3 py-1.5 rounded-md text-xs font-medium transition-all',
+                  tab.bgColor
+                )}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
 
-          {/* Category Filter */}
-          <Select value={categoryFilter} onValueChange={(v) => setCategoryFilter(v as Category | 'all')}>
-            <SelectTrigger className="w-[150px]">
-              <SelectValue placeholder="Category" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Categories</SelectItem>
-              {Object.entries(categoryConfig).map(([key, config]) => (
-                <SelectItem key={key} value={key}>{config.label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {/* Spacer */}
+          <div className="flex-1" />
 
-          {/* Assignee Filter */}
-          <Select value={assigneeFilter} onValueChange={setAssigneeFilter}>
-            <SelectTrigger className="w-[150px]">
-              <SelectValue placeholder="Assignee" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Assignees</SelectItem>
-              <SelectItem value="unassigned">Unassigned</SelectItem>
-              {engineers.map((user) => (
-                <SelectItem key={user.id} value={user.id}>{user.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          {/* Bulk Actions */}
-          {selectedTickets.size > 0 && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="gap-2">
-                  Actions ({selectedTickets.size})
-                  <ChevronDown className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem>Assign to...</DropdownMenuItem>
-                <DropdownMenuItem>Change status...</DropdownMenuItem>
-                <DropdownMenuItem>Add tags...</DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem className="text-destructive">Close tickets</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
+          {/* Refresh Button */}
+          <Button 
+            variant="outline" 
+            size="icon"
+            className="rounded-lg border-[#E5E7EB] h-9 w-9"
+          >
+            <RefreshCw className="h-4 w-4 text-[#64748B]" />
+          </Button>
 
           {/* Export */}
-          <Button variant="outline" size="icon" className="ml-auto">
+          <Button 
+            variant="outline" 
+            className="gap-2 rounded-lg border-[#10B65C] text-[#10B65C] hover:bg-[#F0FDF4] h-9"
+          >
             <Download className="h-4 w-4" />
+            Export
+          </Button>
+
+          {/* Create Ticket Button */}
+          <Button 
+            onClick={() => router.push('/tickets/new')} 
+            className="gap-2 rounded-lg bg-white border border-[#10B65C] text-[#10B65C] hover:bg-[#F0FDF4] h-9"
+          >
+            <Plus className="h-4 w-4" />
+            Create Ticket
           </Button>
         </div>
-      </Card>
+
+        {/* Category tabs row */}
+        <div className="flex gap-2">
+          {categoryTabs.map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => {
+                setCategoryFilter(tab.key === 'all' ? 'all' : tab.key as Category)
+                setCurrentPage(1)
+              }}
+              className={cn(
+                'px-3 py-1.5 rounded-full text-sm font-medium border transition-all',
+                categoryFilter === tab.key || (tab.key === 'all' && categoryFilter === 'all')
+                  ? 'border-[#3B82F6] bg-[#EFF6FF] text-[#3B82F6]'
+                  : 'border-[#E5E7EB] text-[#64748B] hover:border-[#94A3B8] bg-white'
+              )}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      </div>
 
       {/* Tickets Table */}
-      <Card>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-12">
-                <Checkbox
-                  checked={selectedTickets.size === filteredTickets.length && filteredTickets.length > 0}
-                  onCheckedChange={toggleSelectAll}
-                />
-              </TableHead>
-              <TableHead className="w-[120px]">
-                <Button variant="ghost" className="gap-1 -ml-3" onClick={() => handleSort('ticketNumber')}>
-                  ID
-                  <ArrowUpDown className="h-3 w-3" />
-                </Button>
-              </TableHead>
-              <TableHead>
-                <Button variant="ghost" className="gap-1 -ml-3" onClick={() => handleSort('title')}>
-                  Title
-                  <ArrowUpDown className="h-3 w-3" />
-                </Button>
-              </TableHead>
-              <TableHead className="w-[100px]">Category</TableHead>
-              <TableHead className="w-[100px]">
-                <Button variant="ghost" className="gap-1 -ml-3" onClick={() => handleSort('priority')}>
-                  Priority
-                  <ArrowUpDown className="h-3 w-3" />
-                </Button>
-              </TableHead>
-              <TableHead className="w-[120px]">
-                <Button variant="ghost" className="gap-1 -ml-3" onClick={() => handleSort('status')}>
-                  Status
-                  <ArrowUpDown className="h-3 w-3" />
-                </Button>
-              </TableHead>
-              <TableHead className="w-[140px]">Assignee</TableHead>
-              <TableHead className="w-[60px]">SLA</TableHead>
-              <TableHead className="w-[120px]">
-                <Button variant="ghost" className="gap-1 -ml-3" onClick={() => handleSort('createdAt')}>
-                  Created
-                  <ArrowUpDown className="h-3 w-3" />
-                </Button>
-              </TableHead>
-              <TableHead className="w-12"></TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredTickets.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={10} className="h-32 text-center">
-                  <div className="flex flex-col items-center gap-2">
-                    <p className="text-muted-foreground">No tickets found</p>
-                    <Button variant="outline" size="sm" onClick={() => router.push('/tickets/new')}>
-                      Create your first ticket
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ) : (
-              filteredTickets.map((ticket, index) => (
-                <motion.tr
-                  key={ticket.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.2, delay: index * 0.02 }}
-                  className="group cursor-pointer hover:bg-muted/50"
-                  onClick={() => router.push(`/tickets/${ticket.id}`)}
-                >
-                  <TableCell onClick={(e) => e.stopPropagation()}>
-                    <Checkbox
-                      checked={selectedTickets.has(ticket.id)}
-                      onCheckedChange={() => toggleSelect(ticket.id)}
-                    />
-                  </TableCell>
-                  <TableCell className="font-mono text-sm text-muted-foreground">
-                    {ticket.ticketNumber}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-col">
-                      <span className="font-medium truncate max-w-[300px]">{ticket.title}</span>
-                      {ticket.tags.length > 0 && (
-                        <div className="flex gap-1 mt-1">
-                          {ticket.tags.slice(0, 2).map(tag => (
-                            <Badge key={tag} variant="outline" className="text-xs px-1.5 py-0">
-                              {tag}
-                            </Badge>
-                          ))}
-                          {ticket.tags.length > 2 && (
-                            <span className="text-xs text-muted-foreground">+{ticket.tags.length - 2}</span>
-                          )}
-                        </div>
-                      )}
+      <div className="bg-white border border-[#E5E7EB] rounded-xl overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-[#E5E7EB]">
+                <th className="px-4 py-3 text-left">
+                  <button 
+                    className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-[#64748B] hover:text-[#0F172A]"
+                    onClick={() => handleSort('ticketNumber')}
+                  >
+                    Ticket
+                    <ArrowUpDown className="h-3 w-3" />
+                  </button>
+                </th>
+                <th className="px-4 py-3 text-left">
+                  <button 
+                    className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-[#64748B] hover:text-[#0F172A]"
+                    onClick={() => handleSort('status')}
+                  >
+                    Status
+                    <ArrowUpDown className="h-3 w-3" />
+                  </button>
+                </th>
+                <th className="px-4 py-3 text-left">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-[#64748B]">
+                    Category
+                  </span>
+                </th>
+                <th className="px-4 py-3 text-left">
+                  <button 
+                    className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-[#64748B] hover:text-[#0F172A]"
+                    onClick={() => handleSort('priority')}
+                  >
+                    Priority
+                    <ArrowUpDown className="h-3 w-3" />
+                  </button>
+                </th>
+                <th className="px-4 py-3 text-left">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-[#64748B]">
+                    Assignee
+                  </span>
+                </th>
+                <th className="px-4 py-3 text-left">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-[#64748B]">
+                    SLA
+                  </span>
+                </th>
+                <th className="px-4 py-3 text-left">
+                  <button 
+                    className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-[#64748B] hover:text-[#0F172A]"
+                    onClick={() => handleSort('createdAt')}
+                  >
+                    Created
+                    <ArrowUpDown className="h-3 w-3" />
+                  </button>
+                </th>
+                <th className="w-24 px-4 py-3"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {paginatedTickets.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="px-4 py-12 text-center">
+                    <div className="flex flex-col items-center gap-3">
+                      <FileText className="h-12 w-12 text-[#E5E7EB]" />
+                      <p className="text-[#64748B] font-medium">No tickets found</p>
+                      <p className="text-sm text-[#94A3B8]">Try adjusting your filters or create a new ticket</p>
+                      <Button 
+                        onClick={() => router.push('/tickets/new')}
+                        className="mt-2 rounded-lg bg-white border border-[#10B65C] text-[#10B65C] hover:bg-[#F0FDF4]"
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Create your first ticket
+                      </Button>
                     </div>
-                  </TableCell>
-                  <TableCell>
-                    <span className={cn('text-sm', categoryConfig[ticket.category].color)}>
-                      {categoryConfig[ticket.category].label}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <Badge className={cn('font-medium', priorityConfig[ticket.priority].bgColor)}>
-                      {priorityConfig[ticket.priority].label}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className={cn(statusConfig[ticket.status].bgColor, statusConfig[ticket.status].color)}>
-                      {statusConfig[ticket.status].label}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    {ticket.assignee ? (
-                      <div className="flex items-center gap-2">
-                        <Avatar className="h-6 w-6">
-                          <AvatarFallback className="text-xs bg-primary/10 text-primary">
-                            {getInitials(ticket.assignee.name)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span className="text-sm truncate max-w-[80px]">{ticket.assignee.name.split(' ')[0]}</span>
+                  </td>
+                </tr>
+              ) : (
+                paginatedTickets.map((ticket, index) => (
+                  <motion.tr
+                    key={ticket.id}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.15, delay: index * 0.02 }}
+                    className="border-b border-[#F1F5F9] last:border-0 hover:bg-[#F8FAFC] cursor-pointer transition-colors"
+                    onClick={() => router.push(`/tickets/${ticket.id}`)}
+                  >
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        <div className={cn(
+                          "flex h-9 w-9 items-center justify-center rounded-full text-white font-semibold text-sm",
+                          ['bg-[#10B65C]', 'bg-[#3B82F6]', 'bg-[#F97316]', 'bg-[#06B6D4]', 'bg-[#8B5CF6]'][index % 5]
+                        )}>
+                          {ticket.title.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                          <p className="font-medium text-[#0F172A]">{ticket.title}</p>
+                          <p className="text-xs text-[#94A3B8]">{ticket.ticketNumber}</p>
+                        </div>
                       </div>
-                    ) : (
-                      <span className="text-sm text-muted-foreground">Unassigned</span>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {getSLAIndicator(ticket)}
-                  </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
-                    {formatDistanceToNow(ticket.createdAt, { addSuffix: true })}
-                  </TableCell>
-                  <TableCell onClick={(e) => e.stopPropagation()}>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => router.push(`/tickets/${ticket.id}`)}>
-                          View details
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>Edit ticket</DropdownMenuItem>
-                        <DropdownMenuItem>Assign to...</DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem className="text-destructive">Close ticket</DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </motion.tr>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </Card>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className={cn(
+                        'inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold uppercase tracking-wide',
+                        statusConfig[ticket.status].bgColor,
+                        statusConfig[ticket.status].color
+                      )}>
+                        {statusConfig[ticket.status].label}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="text-sm text-[#64748B]">
+                        {categoryConfig[ticket.category].label}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className={cn(
+                        'inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium',
+                        ticket.priority === 'CRITICAL' && 'bg-[#FEE2E2] text-[#DC2626]',
+                        ticket.priority === 'HIGH' && 'bg-[#FFEDD5] text-[#EA580C]',
+                        ticket.priority === 'MEDIUM' && 'bg-[#DBEAFE] text-[#2563EB]',
+                        ticket.priority === 'LOW' && 'bg-[#F3F4F6] text-[#64748B]',
+                      )}>
+                        {priorityConfig[ticket.priority].label}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      {ticket.assignee ? (
+                        <div className="flex items-center gap-2">
+                          <Avatar className="h-7 w-7">
+                            <AvatarFallback className="text-xs bg-[#E5E7EB] text-[#64748B]">
+                              {getInitials(ticket.assignee.name)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className="text-sm text-[#0F172A]">{ticket.assignee.name.split(' ')[0]}</span>
+                        </div>
+                      ) : (
+                        <span className="text-sm text-[#94A3B8]">Unassigned</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      {getSLAIndicator(ticket)}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-[#64748B]">
+                      {formatDistanceToNow(ticket.createdAt, { addSuffix: true })}
+                    </td>
+                    <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="rounded-md border-[#10B65C] text-[#10B65C] hover:bg-[#F0FDF4] font-medium text-xs gap-1"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          router.push(`/tickets/${ticket.id}`)
+                        }}
+                      >
+                        <MoreHorizontal className="h-3.5 w-3.5" />
+                        Actions
+                      </Button>
+                    </td>
+                  </motion.tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
 
       {/* Pagination */}
       <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">
-          Showing {filteredTickets.length} of {mockTickets.length} tickets
+        <p className="text-sm text-[#64748B]">
+          Showing {((currentPage - 1) * ITEMS_PER_PAGE) + 1} - {Math.min(currentPage * ITEMS_PER_PAGE, filteredTickets.length)} of {filteredTickets.length} tickets
         </p>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" disabled>Previous</Button>
-          <Button variant="outline" size="sm" disabled>Next</Button>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="rounded-lg border-[#E5E7EB]"
+            disabled={currentPage === 1}
+            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+          >
+            <ChevronLeft className="h-4 w-4 mr-1" />
+            Previous
+          </Button>
+          <span className="text-sm text-[#64748B] px-2">
+            Page {currentPage} of {totalPages || 1}
+          </span>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="rounded-lg border-[#E5E7EB]"
+            disabled={currentPage >= totalPages}
+            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+          >
+            Next
+            <ChevronRight className="h-4 w-4 ml-1" />
+          </Button>
         </div>
       </div>
     </div>

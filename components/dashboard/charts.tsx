@@ -16,7 +16,6 @@ import {
   Line,
   Legend
 } from 'recharts'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import type {
   TicketsByStatusData,
   TicketsByPriorityData,
@@ -31,7 +30,7 @@ interface ChartsProps {
   engineerWorkload: EngineerWorkloadData[]
 }
 
-const COLORS = ['#3b82f6', '#8b5cf6', '#f59e0b', '#06b6d4', '#ef4444', '#22c55e', '#64748b']
+const COLORS = ['#3B82F6', '#9333EA', '#FACC15', '#0891B2', '#EF4444', '#10B65C', '#64748B']
 
 export function DashboardCharts({
   ticketsByStatus,
@@ -47,32 +46,33 @@ export function DashboardCharts({
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, delay: 0.1 }}
       >
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base font-semibold">Tickets by Status</CardTitle>
-          </CardHeader>
-          <CardContent>
+        <div className="bg-white border border-[#E5E7EB] rounded-2xl">
+          <div className="px-6 py-4 border-b border-[#E5E7EB]">
+            <h3 className="text-base font-semibold text-[#0F172A]">Tickets by Status</h3>
+          </div>
+          <div className="p-6">
             <div className="h-[280px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={ticketsByStatus} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
-                  <XAxis type="number" tick={{ fontSize: 12 }} />
+                  <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#E5E7EB" />
+                  <XAxis type="number" tick={{ fontSize: 12, fill: '#64748B' }} />
                   <YAxis 
                     type="category" 
                     dataKey="status" 
-                    tick={{ fontSize: 12 }} 
+                    tick={{ fontSize: 12, fill: '#64748B' }} 
                     width={80}
                   />
                   <Tooltip 
                     contentStyle={{ 
-                      borderRadius: '8px',
-                      border: '1px solid hsl(var(--border))',
-                      boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
+                      borderRadius: '12px',
+                      border: '1px solid #E5E7EB',
+                      boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+                      backgroundColor: 'white'
                     }}
                   />
                   <Bar 
                     dataKey="count" 
-                    radius={[0, 4, 4, 0]}
+                    radius={[0, 6, 6, 0]}
                   >
                     {ticketsByStatus.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -81,8 +81,8 @@ export function DashboardCharts({
                 </BarChart>
               </ResponsiveContainer>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </motion.div>
 
       {/* Tickets by Priority - Pie Chart */}
@@ -91,11 +91,11 @@ export function DashboardCharts({
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, delay: 0.2 }}
       >
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base font-semibold">Tickets by Priority</CardTitle>
-          </CardHeader>
-          <CardContent>
+        <div className="bg-white border border-[#E5E7EB] rounded-2xl">
+          <div className="px-6 py-4 border-b border-[#E5E7EB]">
+            <h3 className="text-base font-semibold text-[#0F172A]">Tickets by Priority</h3>
+          </div>
+          <div className="p-6">
             <div className="h-[280px]">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -113,19 +113,20 @@ export function DashboardCharts({
                       <Cell 
                         key={`cell-${index}`} 
                         fill={
-                          entry.priority === 'Critical' ? '#ef4444' :
-                          entry.priority === 'High' ? '#f97316' :
-                          entry.priority === 'Medium' ? '#3b82f6' :
-                          '#64748b'
+                          entry.priority === 'Critical' ? '#EF4444' :
+                          entry.priority === 'High' ? '#F97316' :
+                          entry.priority === 'Medium' ? '#3B82F6' :
+                          '#64748B'
                         }
                       />
                     ))}
                   </Pie>
                   <Tooltip 
                     contentStyle={{ 
-                      borderRadius: '8px',
-                      border: '1px solid hsl(var(--border))',
-                      boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
+                      borderRadius: '12px',
+                      border: '1px solid #E5E7EB',
+                      boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+                      backgroundColor: 'white'
                     }}
                   />
                   <Legend 
@@ -134,12 +135,13 @@ export function DashboardCharts({
                     layout="vertical"
                     iconType="circle"
                     iconSize={8}
+                    formatter={(value) => <span style={{ color: '#64748B', fontSize: '12px' }}>{value}</span>}
                   />
                 </PieChart>
               </ResponsiveContainer>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </motion.div>
 
       {/* Weekly Trend - Line Chart */}
@@ -148,46 +150,51 @@ export function DashboardCharts({
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, delay: 0.3 }}
       >
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base font-semibold">Weekly Ticket Trend</CardTitle>
-          </CardHeader>
-          <CardContent>
+        <div className="bg-white border border-[#E5E7EB] rounded-2xl">
+          <div className="px-6 py-4 border-b border-[#E5E7EB]">
+            <h3 className="text-base font-semibold text-[#0F172A]">Weekly Ticket Trend</h3>
+          </div>
+          <div className="p-6">
             <div className="h-[280px]">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={weeklyTrend}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="day" tick={{ fontSize: 12 }} />
-                  <YAxis tick={{ fontSize: 12 }} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                  <XAxis dataKey="day" tick={{ fontSize: 12, fill: '#64748B' }} />
+                  <YAxis tick={{ fontSize: 12, fill: '#64748B' }} />
                   <Tooltip 
                     contentStyle={{ 
-                      borderRadius: '8px',
-                      border: '1px solid hsl(var(--border))',
-                      boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
+                      borderRadius: '12px',
+                      border: '1px solid #E5E7EB',
+                      boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+                      backgroundColor: 'white'
                     }}
                   />
-                  <Legend iconType="circle" iconSize={8} />
+                  <Legend 
+                    iconType="circle" 
+                    iconSize={8}
+                    formatter={(value) => <span style={{ color: '#64748B', fontSize: '12px' }}>{value}</span>}
+                  />
                   <Line 
                     type="monotone" 
                     dataKey="created" 
-                    stroke="#3b82f6" 
+                    stroke="#3B82F6" 
                     strokeWidth={2}
-                    dot={{ fill: '#3b82f6', strokeWidth: 0, r: 4 }}
+                    dot={{ fill: '#3B82F6', strokeWidth: 0, r: 4 }}
                     name="Created"
                   />
                   <Line 
                     type="monotone" 
                     dataKey="resolved" 
-                    stroke="#22c55e" 
+                    stroke="#10B65C" 
                     strokeWidth={2}
-                    dot={{ fill: '#22c55e', strokeWidth: 0, r: 4 }}
+                    dot={{ fill: '#10B65C', strokeWidth: 0, r: 4 }}
                     name="Resolved"
                   />
                 </LineChart>
               </ResponsiveContainer>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </motion.div>
 
       {/* Engineer Workload - Bar Chart */}
@@ -196,36 +203,41 @@ export function DashboardCharts({
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, delay: 0.4 }}
       >
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base font-semibold">Engineer Workload</CardTitle>
-          </CardHeader>
-          <CardContent>
+        <div className="bg-white border border-[#E5E7EB] rounded-2xl">
+          <div className="px-6 py-4 border-b border-[#E5E7EB]">
+            <h3 className="text-base font-semibold text-[#0F172A]">Engineer Workload</h3>
+          </div>
+          <div className="p-6">
             <div className="h-[280px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={engineerWorkload}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                  <YAxis tick={{ fontSize: 12 }} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                  <XAxis dataKey="name" tick={{ fontSize: 12, fill: '#64748B' }} />
+                  <YAxis tick={{ fontSize: 12, fill: '#64748B' }} />
                   <Tooltip 
                     contentStyle={{ 
-                      borderRadius: '8px',
-                      border: '1px solid hsl(var(--border))',
-                      boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
+                      borderRadius: '12px',
+                      border: '1px solid #E5E7EB',
+                      boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+                      backgroundColor: 'white'
                     }}
                   />
-                  <Legend iconType="circle" iconSize={8} />
+                  <Legend 
+                    iconType="circle" 
+                    iconSize={8}
+                    formatter={(value) => <span style={{ color: '#64748B', fontSize: '12px' }}>{value}</span>}
+                  />
                   <Bar 
                     dataKey="tickets" 
-                    fill="#8b5cf6" 
+                    fill="#10B65C" 
                     name="Active Tickets"
-                    radius={[4, 4, 0, 0]}
+                    radius={[6, 6, 0, 0]}
                   />
                 </BarChart>
               </ResponsiveContainer>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </motion.div>
     </div>
   )

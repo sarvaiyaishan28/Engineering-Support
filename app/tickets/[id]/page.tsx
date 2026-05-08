@@ -14,7 +14,6 @@ import {
   CheckCircle2,
   MessageSquare,
   Paperclip,
-  Activity,
   MoreHorizontal,
   Send,
   Eye,
@@ -86,8 +85,12 @@ export default function TicketDetailPage() {
   if (!ticket) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
-        <p className="text-muted-foreground">Ticket not found</p>
-        <Button variant="outline" onClick={() => router.push('/tickets')}>
+        <p className="text-[#64748B]">Ticket not found</p>
+        <Button 
+          variant="outline" 
+          onClick={() => router.push('/tickets')}
+          className="rounded-xl border-[#E5E7EB]"
+        >
           Back to Tickets
         </Button>
       </div>
@@ -140,6 +143,24 @@ export default function TicketDetailPage() {
     return `${minutes}m remaining`
   }
 
+  const getStatusBadge = (status: TicketStatus) => {
+    const config = {
+      OPEN: { bg: 'bg-[#F3F4F6]', text: 'text-[#64748B]', label: 'Open' },
+      PENDING: { bg: 'bg-[#FEF9C3]', text: 'text-[#CA8A04]', label: 'Pending' },
+      IN_PROGRESS: { bg: 'bg-[#FEF9C3]', text: 'text-[#CA8A04]', label: 'In Progress' },
+      QA_REVIEW: { bg: 'bg-[#F3E8FF]', text: 'text-[#9333EA]', label: 'QA Review' },
+      BLOCKED: { bg: 'bg-[#FEE2E2]', text: 'text-[#DC2626]', label: 'Blocked' },
+      RESOLVED: { bg: 'bg-[#DCFCE7]', text: 'text-[#16A34A]', label: 'Resolved' },
+      CLOSED: { bg: 'bg-[#DBEAFE]', text: 'text-[#3B82F6]', label: 'Closed' },
+    }
+    const c = config[status]
+    return (
+      <span className={cn('inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium', c.bg, c.text)}>
+        {c.label}
+      </span>
+    )
+  }
+
   return (
     <TooltipProvider>
       <div className="space-y-6">
@@ -154,50 +175,60 @@ export default function TicketDetailPage() {
               variant="ghost"
               size="icon"
               onClick={() => router.push('/tickets')}
+              className="rounded-xl text-[#64748B] hover:text-[#0F172A] hover:bg-[#F3F4F6]"
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div>
               <div className="flex items-center gap-3 mb-2">
-                <span className="text-sm font-mono text-muted-foreground">
+                <span className="text-sm font-mono text-[#64748B]">
                   {ticket.ticketNumber}
                 </span>
-                <Badge className={cn(priorityConfig[ticket.priority].bgColor)}>
+                <span className={cn(
+                  'inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium',
+                  ticket.priority === 'CRITICAL' && 'bg-[#FEE2E2] text-[#DC2626]',
+                  ticket.priority === 'HIGH' && 'bg-[#FFEDD5] text-[#EA580C]',
+                  ticket.priority === 'MEDIUM' && 'bg-[#DBEAFE] text-[#2563EB]',
+                  ticket.priority === 'LOW' && 'bg-[#F3F4F6] text-[#64748B]',
+                )}>
                   {priorityConfig[ticket.priority].label}
-                </Badge>
-                <Badge variant="outline" className={cn(statusConfig[ticket.status].bgColor, statusConfig[ticket.status].color)}>
-                  {statusConfig[ticket.status].label}
-                </Badge>
+                </span>
+                {getStatusBadge(ticket.status)}
                 {slaStatus !== 'healthy' && (
-                  <Badge variant={slaStatus === 'breached' ? 'destructive' : 'outline'} className={slaStatus === 'warning' ? 'border-yellow-500 text-yellow-600' : ''}>
+                  <Badge 
+                    className={cn(
+                      'rounded-full',
+                      slaStatus === 'breached' ? 'bg-[#FEE2E2] text-[#DC2626]' : 'bg-[#FEF9C3] text-[#CA8A04]'
+                    )}
+                  >
                     {slaStatus === 'breached' ? 'SLA Breached' : 'SLA Warning'}
                   </Badge>
                 )}
               </div>
-              <h1 className="text-2xl font-bold tracking-tight">{ticket.title}</h1>
+              <h1 className="text-2xl font-bold tracking-tight text-[#0F172A]">{ticket.title}</h1>
             </div>
           </div>
           
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" className="rounded-xl border-[#E5E7EB] text-[#64748B]">
               <Edit2 className="h-4 w-4 mr-2" />
               Edit
             </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="icon">
+                <Button variant="outline" size="icon" className="rounded-xl border-[#E5E7EB]">
                   <MoreHorizontal className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem>
+              <DropdownMenuContent align="end" className="rounded-xl border-[#E5E7EB]">
+                <DropdownMenuItem className="cursor-pointer">
                   <Link2 className="h-4 w-4 mr-2" />
                   Copy link
                 </DropdownMenuItem>
-                <DropdownMenuItem>Link issue</DropdownMenuItem>
-                <DropdownMenuItem>Add watcher</DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem className="text-destructive">Close ticket</DropdownMenuItem>
+                <DropdownMenuItem className="cursor-pointer">Link issue</DropdownMenuItem>
+                <DropdownMenuItem className="cursor-pointer">Add watcher</DropdownMenuItem>
+                <DropdownMenuSeparator className="bg-[#E5E7EB]" />
+                <DropdownMenuItem className="cursor-pointer text-[#EF4444]">Close ticket</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
@@ -208,75 +239,75 @@ export default function TicketDetailPage() {
           <div className="lg:col-span-2 space-y-6">
             {/* Tabs */}
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList>
-                <TabsTrigger value="overview">Overview</TabsTrigger>
-                <TabsTrigger value="activity">
+              <TabsList className="bg-[#F3F4F6] rounded-xl p-1">
+                <TabsTrigger value="overview" className="rounded-lg data-[state=active]:bg-white data-[state=active]:text-[#0F172A]">Overview</TabsTrigger>
+                <TabsTrigger value="activity" className="rounded-lg data-[state=active]:bg-white data-[state=active]:text-[#0F172A]">
                   Activity
-                  <Badge variant="secondary" className="ml-2 h-5 px-1.5">
+                  <Badge className="ml-2 h-5 px-1.5 bg-[#E5E7EB] text-[#64748B]">
                     {activities.length}
                   </Badge>
                 </TabsTrigger>
-                <TabsTrigger value="comments">
+                <TabsTrigger value="comments" className="rounded-lg data-[state=active]:bg-white data-[state=active]:text-[#0F172A]">
                   Comments
-                  <Badge variant="secondary" className="ml-2 h-5 px-1.5">
+                  <Badge className="ml-2 h-5 px-1.5 bg-[#E5E7EB] text-[#64748B]">
                     {comments.length}
                   </Badge>
                 </TabsTrigger>
-                <TabsTrigger value="attachments">Attachments</TabsTrigger>
+                <TabsTrigger value="attachments" className="rounded-lg data-[state=active]:bg-white data-[state=active]:text-[#0F172A]">Attachments</TabsTrigger>
               </TabsList>
 
               <TabsContent value="overview" className="space-y-6 mt-6">
                 {/* Description */}
-                <Card>
+                <Card className="rounded-2xl border-[#E5E7EB]">
                   <CardHeader>
-                    <CardTitle className="text-base">Description</CardTitle>
+                    <CardTitle className="text-base text-[#0F172A]">Description</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-sm whitespace-pre-wrap">{ticket.description}</p>
+                    <p className="text-sm text-[#64748B] whitespace-pre-wrap">{ticket.description}</p>
                   </CardContent>
                 </Card>
 
                 {/* Steps to Reproduce */}
                 {ticket.stepsToReproduce && (
-                  <Card>
+                  <Card className="rounded-2xl border-[#E5E7EB]">
                     <CardHeader>
-                      <CardTitle className="text-base">Steps to Reproduce</CardTitle>
+                      <CardTitle className="text-base text-[#0F172A]">Steps to Reproduce</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-sm whitespace-pre-wrap">{ticket.stepsToReproduce}</p>
+                      <p className="text-sm text-[#64748B] whitespace-pre-wrap">{ticket.stepsToReproduce}</p>
                     </CardContent>
                   </Card>
                 )}
 
                 {/* Impact */}
                 {ticket.impact && (
-                  <Card>
+                  <Card className="rounded-2xl border-[#E5E7EB]">
                     <CardHeader>
-                      <CardTitle className="text-base">Business Impact</CardTitle>
+                      <CardTitle className="text-base text-[#0F172A]">Business Impact</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-sm">{ticket.impact}</p>
+                      <p className="text-sm text-[#64748B]">{ticket.impact}</p>
                     </CardContent>
                   </Card>
                 )}
 
                 {/* Technical Info */}
                 {(ticket.browserInfo || ticket.environment) && (
-                  <Card>
+                  <Card className="rounded-2xl border-[#E5E7EB]">
                     <CardHeader>
-                      <CardTitle className="text-base">Technical Details</CardTitle>
+                      <CardTitle className="text-base text-[#0F172A]">Technical Details</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-2">
                       <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Environment</span>
-                        <Badge variant="outline" className={environmentConfig[ticket.environment].bgColor}>
+                        <span className="text-[#64748B]">Environment</span>
+                        <span className="px-2 py-0.5 bg-[#F3F4F6] rounded text-[#0F172A] text-xs font-medium">
                           {environmentConfig[ticket.environment].label}
-                        </Badge>
+                        </span>
                       </div>
                       {ticket.browserInfo && (
                         <div className="flex justify-between text-sm">
-                          <span className="text-muted-foreground">Browser</span>
-                          <span>{ticket.browserInfo}</span>
+                          <span className="text-[#64748B]">Browser</span>
+                          <span className="text-[#0F172A]">{ticket.browserInfo}</span>
                         </div>
                       )}
                     </CardContent>
@@ -285,30 +316,30 @@ export default function TicketDetailPage() {
               </TabsContent>
 
               <TabsContent value="activity" className="mt-6">
-                <Card>
+                <Card className="rounded-2xl border-[#E5E7EB]">
                   <CardContent className="p-6">
                     {activities.length === 0 ? (
-                      <p className="text-center text-muted-foreground py-8">No activity yet</p>
+                      <p className="text-center text-[#64748B] py-8">No activity yet</p>
                     ) : (
                       <div className="space-y-4">
                         {activities.map((activity, index) => (
                           <div key={activity.id} className="flex gap-3">
                             <div className="flex flex-col items-center">
                               <Avatar className="h-8 w-8">
-                                <AvatarFallback className="text-xs">
+                                <AvatarFallback className="text-xs bg-[#E5E7EB] text-[#64748B]">
                                   {activity.user ? getInitials(activity.user.name) : '?'}
                                 </AvatarFallback>
                               </Avatar>
                               {index < activities.length - 1 && (
-                                <div className="w-px flex-1 bg-border mt-2" />
+                                <div className="w-px flex-1 bg-[#E5E7EB] mt-2" />
                               )}
                             </div>
                             <div className="flex-1 pb-4">
                               <div className="flex items-center gap-2">
-                                <span className="font-medium text-sm">{activity.user?.name}</span>
-                                <span className="text-sm text-muted-foreground">{activity.action.replace('_', ' ')}</span>
+                                <span className="font-medium text-sm text-[#0F172A]">{activity.user?.name}</span>
+                                <span className="text-sm text-[#64748B]">{activity.action.replace('_', ' ')}</span>
                               </div>
-                              <p className="text-xs text-muted-foreground mt-1">
+                              <p className="text-xs text-[#94A3B8] mt-1">
                                 {formatDistanceToNow(activity.createdAt, { addSuffix: true })}
                               </p>
                             </div>
@@ -322,7 +353,7 @@ export default function TicketDetailPage() {
 
               <TabsContent value="comments" className="mt-6 space-y-4">
                 {/* Add Comment */}
-                <Card>
+                <Card className="rounded-2xl border-[#E5E7EB]">
                   <CardContent className="p-4">
                     <div className="space-y-3">
                       <Textarea
@@ -330,7 +361,10 @@ export default function TicketDetailPage() {
                         value={newComment}
                         onChange={(e) => setNewComment(e.target.value)}
                         rows={3}
-                        className={isInternalComment ? 'bg-yellow-50 dark:bg-yellow-950/20 border-yellow-200' : ''}
+                        className={cn(
+                          "rounded-xl border-[#E5E7EB] focus:border-[#10B65C] focus:ring-[#10B65C]",
+                          isInternalComment && 'bg-[#FEF9C3]/20 border-[#FACC15]/30'
+                        )}
                       />
                       <div className="flex items-center justify-between">
                         <Tooltip>
@@ -339,7 +373,10 @@ export default function TicketDetailPage() {
                               variant={isInternalComment ? "secondary" : "ghost"}
                               size="sm"
                               onClick={() => setIsInternalComment(!isInternalComment)}
-                              className="gap-2"
+                              className={cn(
+                                "gap-2 rounded-lg",
+                                isInternalComment && "bg-[#FEF9C3] text-[#CA8A04]"
+                              )}
                             >
                               {isInternalComment ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                               {isInternalComment ? 'Internal Note' : 'Public Comment'}
@@ -353,6 +390,7 @@ export default function TicketDetailPage() {
                           size="sm"
                           onClick={handleSubmitComment}
                           disabled={!newComment.trim() || isSubmittingComment}
+                          className="rounded-xl bg-[#10B65C] hover:bg-[#0EA550] text-white"
                         >
                           <Send className="h-4 w-4 mr-2" />
                           {isInternalComment ? 'Add Note' : 'Comment'}
@@ -364,35 +402,43 @@ export default function TicketDetailPage() {
 
                 {/* Comments List */}
                 {comments.length === 0 ? (
-                  <Card>
+                  <Card className="rounded-2xl border-[#E5E7EB]">
                     <CardContent className="p-8 text-center">
-                      <MessageSquare className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
-                      <p className="text-muted-foreground">No comments yet</p>
+                      <MessageSquare className="h-8 w-8 mx-auto text-[#E5E7EB] mb-2" />
+                      <p className="text-[#64748B]">No comments yet</p>
                     </CardContent>
                   </Card>
                 ) : (
                   comments.map((comment) => (
-                    <Card key={comment.id} className={comment.isInternal ? 'border-yellow-200 bg-yellow-50/50 dark:bg-yellow-950/10' : ''}>
+                    <Card 
+                      key={comment.id} 
+                      className={cn(
+                        "rounded-2xl",
+                        comment.isInternal 
+                          ? 'border-[#FACC15]/30 bg-[#FEF9C3]/10' 
+                          : 'border-[#E5E7EB]'
+                      )}
+                    >
                       <CardContent className="p-4">
                         <div className="flex gap-3">
                           <Avatar className="h-8 w-8">
-                            <AvatarFallback className="text-xs">
+                            <AvatarFallback className="text-xs bg-[#E5E7EB] text-[#64748B]">
                               {comment.user ? getInitials(comment.user.name) : '?'}
                             </AvatarFallback>
                           </Avatar>
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1">
-                              <span className="font-medium text-sm">{comment.user?.name}</span>
+                              <span className="font-medium text-sm text-[#0F172A]">{comment.user?.name}</span>
                               {comment.isInternal && (
-                                <Badge variant="outline" className="text-xs bg-yellow-100 border-yellow-300">
+                                <Badge className="text-xs bg-[#FEF9C3] text-[#CA8A04] rounded-full">
                                   Internal
                                 </Badge>
                               )}
-                              <span className="text-xs text-muted-foreground">
+                              <span className="text-xs text-[#94A3B8]">
                                 {formatDistanceToNow(comment.createdAt, { addSuffix: true })}
                               </span>
                             </div>
-                            <p className="text-sm whitespace-pre-wrap">{comment.message}</p>
+                            <p className="text-sm text-[#64748B] whitespace-pre-wrap">{comment.message}</p>
                           </div>
                         </div>
                       </CardContent>
@@ -402,11 +448,11 @@ export default function TicketDetailPage() {
               </TabsContent>
 
               <TabsContent value="attachments" className="mt-6">
-                <Card>
+                <Card className="rounded-2xl border-[#E5E7EB]">
                   <CardContent className="p-8 text-center">
-                    <Paperclip className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
-                    <p className="text-muted-foreground">No attachments</p>
-                    <Button variant="outline" size="sm" className="mt-4">
+                    <Paperclip className="h-8 w-8 mx-auto text-[#E5E7EB] mb-2" />
+                    <p className="text-[#64748B]">No attachments</p>
+                    <Button variant="outline" size="sm" className="mt-4 rounded-xl border-[#E5E7EB]">
                       Upload File
                     </Button>
                   </CardContent>
@@ -418,19 +464,19 @@ export default function TicketDetailPage() {
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Quick Actions */}
-            <Card>
+            <Card className="rounded-2xl border-[#E5E7EB]">
               <CardHeader>
-                <CardTitle className="text-base">Quick Actions</CardTitle>
+                <CardTitle className="text-base text-[#0F172A]">Quick Actions</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 {/* Status */}
                 <div className="space-y-2">
-                  <label className="text-sm text-muted-foreground">Status</label>
+                  <label className="text-sm text-[#64748B]">Status</label>
                   <Select value={ticket.status} onValueChange={(v) => handleStatusChange(v as TicketStatus)}>
-                    <SelectTrigger>
+                    <SelectTrigger className="rounded-xl border-[#E5E7EB]">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="rounded-xl">
                       {Object.entries(statusConfig).map(([key, config]) => (
                         <SelectItem key={key} value={key}>{config.label}</SelectItem>
                       ))}
@@ -440,15 +486,15 @@ export default function TicketDetailPage() {
 
                 {/* Assignee */}
                 <div className="space-y-2">
-                  <label className="text-sm text-muted-foreground">Assignee</label>
+                  <label className="text-sm text-[#64748B]">Assignee</label>
                   <Select
                     value={ticket.assigneeId || 'unassigned'}
                     onValueChange={handleAssigneeChange}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="rounded-xl border-[#E5E7EB]">
                       <SelectValue placeholder="Unassigned" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="rounded-xl">
                       <SelectItem value="unassigned">Unassigned</SelectItem>
                       {engineers.map((user) => (
                         <SelectItem key={user.id} value={user.id}>{user.name}</SelectItem>
@@ -460,29 +506,29 @@ export default function TicketDetailPage() {
             </Card>
 
             {/* SLA */}
-            <Card>
+            <Card className="rounded-2xl border-[#E5E7EB]">
               <CardHeader>
-                <CardTitle className="text-base flex items-center gap-2">
+                <CardTitle className="text-base text-[#0F172A] flex items-center gap-2">
                   <Timer className="h-4 w-4" />
                   SLA Status
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className={cn(
-                  'p-3 rounded-lg text-center',
-                  slaStatus === 'healthy' ? 'bg-green-50 dark:bg-green-950/20' :
-                  slaStatus === 'warning' ? 'bg-yellow-50 dark:bg-yellow-950/20' :
-                  'bg-red-50 dark:bg-red-950/20'
+                  'p-4 rounded-xl text-center',
+                  slaStatus === 'healthy' ? 'bg-[#DCFCE7]' :
+                  slaStatus === 'warning' ? 'bg-[#FEF9C3]' :
+                  'bg-[#FEE2E2]'
                 )}>
                   <div className={cn(
                     'text-2xl font-bold',
-                    slaStatus === 'healthy' ? 'text-green-600' :
-                    slaStatus === 'warning' ? 'text-yellow-600' :
-                    'text-red-600'
+                    slaStatus === 'healthy' ? 'text-[#16A34A]' :
+                    slaStatus === 'warning' ? 'text-[#CA8A04]' :
+                    'text-[#DC2626]'
                   )}>
                     {getSLATimeRemaining() || 'N/A'}
                   </div>
-                  <div className="text-xs text-muted-foreground mt-1">
+                  <div className="text-xs text-[#64748B] mt-1">
                     {slaHours}h SLA for {priorityConfig[ticket.priority].label} priority
                   </div>
                 </div>
@@ -490,70 +536,70 @@ export default function TicketDetailPage() {
             </Card>
 
             {/* Details */}
-            <Card>
+            <Card className="rounded-2xl border-[#E5E7EB]">
               <CardHeader>
-                <CardTitle className="text-base">Details</CardTitle>
+                <CardTitle className="text-base text-[#0F172A]">Details</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground flex items-center gap-2">
+                  <span className="text-[#64748B] flex items-center gap-2">
                     <User className="h-4 w-4" />
                     Reporter
                   </span>
                   <div className="flex items-center gap-2">
                     <Avatar className="h-5 w-5">
-                      <AvatarFallback className="text-[10px]">
+                      <AvatarFallback className="text-[10px] bg-[#E5E7EB] text-[#64748B]">
                         {ticket.reporter ? getInitials(ticket.reporter.name) : '?'}
                       </AvatarFallback>
                     </Avatar>
-                    <span>{ticket.reporter?.name}</span>
+                    <span className="text-[#0F172A]">{ticket.reporter?.name}</span>
                   </div>
                 </div>
 
-                <Separator />
+                <Separator className="bg-[#E5E7EB]" />
 
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground flex items-center gap-2">
+                  <span className="text-[#64748B] flex items-center gap-2">
                     <Tag className="h-4 w-4" />
                     Category
                   </span>
-                  <span className={categoryConfig[ticket.category].color}>
+                  <span className="px-2 py-0.5 bg-[#F3F4F6] rounded text-[#0F172A] text-xs font-medium">
                     {categoryConfig[ticket.category].label}
                   </span>
                 </div>
 
-                <Separator />
+                <Separator className="bg-[#E5E7EB]" />
 
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground flex items-center gap-2">
+                  <span className="text-[#64748B] flex items-center gap-2">
                     <Calendar className="h-4 w-4" />
                     Created
                   </span>
-                  <span>{format(ticket.createdAt, 'MMM d, yyyy')}</span>
+                  <span className="text-[#0F172A]">{format(ticket.createdAt, 'MMM d, yyyy')}</span>
                 </div>
 
-                <Separator />
+                <Separator className="bg-[#E5E7EB]" />
 
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground flex items-center gap-2">
+                  <span className="text-[#64748B] flex items-center gap-2">
                     <Clock className="h-4 w-4" />
                     Updated
                   </span>
-                  <span>{formatDistanceToNow(ticket.updatedAt, { addSuffix: true })}</span>
+                  <span className="text-[#0F172A]">{formatDistanceToNow(ticket.updatedAt, { addSuffix: true })}</span>
                 </div>
               </CardContent>
             </Card>
 
             {/* Tags */}
             {ticket.tags.length > 0 && (
-              <Card>
+              <Card className="rounded-2xl border-[#E5E7EB]">
                 <CardHeader>
-                  <CardTitle className="text-base">Tags</CardTitle>
+                  <CardTitle className="text-base text-[#0F172A]">Tags</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="flex flex-wrap gap-2">
                     {ticket.tags.map((tag) => (
-                      <Badge key={tag} variant="secondary">
+                      <Badge key={tag} className="bg-[#F3F4F6] text-[#64748B] rounded-full">
                         {tag}
                       </Badge>
                     ))}

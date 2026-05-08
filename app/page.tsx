@@ -22,8 +22,8 @@ export default function DashboardPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
       >
-        <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground">
+        <h1 className="text-2xl font-bold tracking-tight text-[#0F172A]">Dashboard</h1>
+        <p className="text-[#64748B]">
           Overview of engineering support ticket metrics and activity
         </p>
       </motion.div>
@@ -47,21 +47,21 @@ export default function DashboardPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: 0.5 }}
-            className="rounded-xl border bg-card p-6"
+            className="rounded-2xl border border-[#E5E7EB] bg-white p-6"
           >
-            <h3 className="font-semibold mb-4">SLA Compliance Overview</h3>
+            <h3 className="font-semibold mb-4 text-[#0F172A]">SLA Compliance Overview</h3>
             <div className="grid grid-cols-3 gap-4">
-              <div className="text-center p-4 rounded-lg bg-green-500/10">
-                <div className="text-3xl font-bold text-green-600">89%</div>
-                <div className="text-sm text-muted-foreground mt-1">On Track</div>
+              <div className="text-center p-4 rounded-xl bg-[#DCFCE7]">
+                <div className="text-3xl font-bold text-[#16A34A]">89%</div>
+                <div className="text-sm text-[#64748B] mt-1">On Track</div>
               </div>
-              <div className="text-center p-4 rounded-lg bg-yellow-500/10">
-                <div className="text-3xl font-bold text-yellow-600">8%</div>
-                <div className="text-sm text-muted-foreground mt-1">At Risk</div>
+              <div className="text-center p-4 rounded-xl bg-[#FEF9C3]">
+                <div className="text-3xl font-bold text-[#CA8A04]">8%</div>
+                <div className="text-sm text-[#64748B] mt-1">At Risk</div>
               </div>
-              <div className="text-center p-4 rounded-lg bg-red-500/10">
-                <div className="text-3xl font-bold text-red-600">3%</div>
-                <div className="text-sm text-muted-foreground mt-1">Breached</div>
+              <div className="text-center p-4 rounded-xl bg-[#FEE2E2]">
+                <div className="text-3xl font-bold text-[#DC2626]">3%</div>
+                <div className="text-sm text-[#64748B] mt-1">Breached</div>
               </div>
             </div>
           </motion.div>

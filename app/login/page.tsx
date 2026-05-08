@@ -3,11 +3,12 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Layers, Mail, Lock, Eye, EyeOff, ArrowRight, Loader2 } from 'lucide-react'
+import { Mail, Lock, Eye, EyeOff, ArrowRight, Loader2, TrendingUp, Users, FileText } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -52,7 +53,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex bg-background">
+    <div className="min-h-screen flex bg-white">
       {/* Left side - Form */}
       <div className="flex-1 flex items-center justify-center p-8">
         <motion.div
@@ -63,26 +64,33 @@ export default function LoginPage() {
         >
           {/* Logo */}
           <div className="flex items-center gap-3 mb-8">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary">
-              <Layers className="h-6 w-6 text-primary-foreground" />
+            <div className="relative h-10 w-10">
+              <Image 
+                src="/allocations-icon.png" 
+                alt="Allocations" 
+                fill
+                className="object-contain"
+                priority
+              />
             </div>
-            <div>
-              <h1 className="font-semibold text-lg">Allocations.com</h1>
-              <p className="text-xs text-muted-foreground">Engineering Support</p>
-            </div>
+            <h1 className="font-bold text-xl text-[#0F172A]">Allocations</h1>
           </div>
 
           {/* Header */}
           <div className="mb-8">
-            <h2 className="text-2xl font-bold tracking-tight">Welcome back</h2>
-            <p className="text-muted-foreground mt-1">
+            <h2 className="text-2xl font-bold tracking-tight text-[#0F172A]">Welcome back</h2>
+            <p className="text-[#64748B] mt-1">
               Sign in to your account to continue
             </p>
           </div>
 
           {/* OAuth buttons */}
           <div className="grid gap-3 mb-6">
-            <Button variant="outline" className="w-full h-11" type="button">
+            <Button 
+              variant="outline" 
+              className="w-full h-11 rounded-xl border-[#E5E7EB] text-[#0F172A] hover:bg-[#F8FAFC]" 
+              type="button"
+            >
               <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
                 <path
                   d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -107,10 +115,10 @@ export default function LoginPage() {
 
           <div className="relative mb-6">
             <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t" />
+              <span className="w-full border-t border-[#E5E7EB]" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">
+              <span className="bg-white px-2 text-[#94A3B8]">
                 Or continue with email
               </span>
             </div>
@@ -119,68 +127,76 @@ export default function LoginPage() {
           {/* Login form */}
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email" className="text-[#0F172A]">Email</Label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#94A3B8]" />
                 <Input
                   id="email"
                   type="email"
                   placeholder="name@allocations.com"
-                  className="pl-10 h-11"
+                  className="pl-10 h-11 rounded-xl border-[#E5E7EB] focus:border-[#10B65C] focus:ring-[#10B65C]"
                   {...register('email')}
                 />
               </div>
               {errors.email && (
-                <p className="text-sm text-destructive">{errors.email.message}</p>
+                <p className="text-sm text-[#EF4444]">{errors.email.message}</p>
               )}
             </div>
 
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password" className="text-[#0F172A]">Password</Label>
                 <Link
                   href="/forgot-password"
-                  className="text-sm text-primary hover:underline"
+                  className="text-sm text-[#10B65C] hover:text-[#0EA550] hover:underline"
                 >
                   Forgot password?
                 </Link>
               </div>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#94A3B8]" />
                 <Input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
                   placeholder="Enter your password"
-                  className="pl-10 pr-10 h-11"
+                  className="pl-10 pr-10 h-11 rounded-xl border-[#E5E7EB] focus:border-[#10B65C] focus:ring-[#10B65C]"
                   {...register('password')}
                 />
                 <Button
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 text-[#94A3B8] hover:text-[#64748B]"
                   onClick={() => setShowPassword(!showPassword)}
                 >
                   {showPassword ? (
-                    <EyeOff className="h-4 w-4 text-muted-foreground" />
+                    <EyeOff className="h-4 w-4" />
                   ) : (
-                    <Eye className="h-4 w-4 text-muted-foreground" />
+                    <Eye className="h-4 w-4" />
                   )}
                 </Button>
               </div>
               {errors.password && (
-                <p className="text-sm text-destructive">{errors.password.message}</p>
+                <p className="text-sm text-[#EF4444]">{errors.password.message}</p>
               )}
             </div>
 
             <div className="flex items-center space-x-2">
-              <Checkbox id="rememberMe" {...register('rememberMe')} />
-              <Label htmlFor="rememberMe" className="text-sm font-normal">
+              <Checkbox 
+                id="rememberMe" 
+                {...register('rememberMe')} 
+                className="border-[#E5E7EB] data-[state=checked]:bg-[#10B65C] data-[state=checked]:border-[#10B65C]"
+              />
+              <Label htmlFor="rememberMe" className="text-sm font-normal text-[#64748B]">
                 Remember me for 30 days
               </Label>
             </div>
 
-            <Button type="submit" className="w-full h-11" disabled={isLoading}>
+            <Button 
+              type="submit" 
+              className="w-full h-11 rounded-xl bg-[#10B65C] hover:bg-[#0EA550] text-white" 
+              disabled={isLoading}
+            >
               {isLoading ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : (
@@ -191,46 +207,53 @@ export default function LoginPage() {
           </form>
 
           {/* Demo credentials hint */}
-          <div className="mt-6 p-4 rounded-lg bg-muted/50 border">
-            <p className="text-sm text-muted-foreground">
-              <strong>Demo credentials:</strong><br />
-              Email: any valid email<br />
-              Password: demo123
+          <div className="mt-6 p-4 rounded-xl bg-[#F0FDF4] border border-[#10B65C]/20">
+            <p className="text-sm text-[#0F172A]">
+              <strong className="text-[#10B65C]">Demo credentials:</strong><br />
+              <span className="text-[#64748B]">Email: any valid email</span><br />
+              <span className="text-[#64748B]">Password: demo123</span>
             </p>
           </div>
         </motion.div>
       </div>
 
       {/* Right side - Feature showcase */}
-      <div className="hidden lg:flex flex-1 items-center justify-center bg-gradient-to-br from-primary/10 via-primary/5 to-background p-8">
+      <div className="hidden lg:flex flex-1 items-center justify-center bg-[#F8FAFC] p-8">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5, delay: 0.2 }}
           className="max-w-lg text-center"
         >
-          <div className="mb-8 mx-auto w-64 h-64 rounded-3xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
-            <Layers className="h-24 w-24 text-primary/40" />
+          <div className="mb-8 mx-auto w-64 h-64 rounded-3xl bg-[#10B65C]/10 flex items-center justify-center">
+            <div className="relative h-32 w-32">
+              <Image 
+                src="/allocations-icon.png" 
+                alt="Allocations" 
+                fill
+                className="object-contain"
+              />
+            </div>
           </div>
-          <h3 className="text-2xl font-bold mb-4">
+          <h3 className="text-2xl font-bold mb-4 text-[#0F172A]">
             Engineering Operations Platform
           </h3>
-          <p className="text-muted-foreground">
+          <p className="text-[#64748B]">
             Track, manage, and resolve engineering support tickets with SLA tracking, 
             team workload management, and powerful analytics.
           </p>
           <div className="flex justify-center gap-8 mt-8">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-primary">99.9%</div>
-              <div className="text-xs text-muted-foreground">SLA Compliance</div>
+            <div className="text-center p-4 bg-white rounded-2xl border border-[#E5E7EB]">
+              <div className="text-2xl font-bold text-[#10B65C]">99.9%</div>
+              <div className="text-xs text-[#64748B]">SLA Compliance</div>
             </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-primary">4.2h</div>
-              <div className="text-xs text-muted-foreground">Avg Resolution</div>
+            <div className="text-center p-4 bg-white rounded-2xl border border-[#E5E7EB]">
+              <div className="text-2xl font-bold text-[#10B65C]">4.2h</div>
+              <div className="text-xs text-[#64748B]">Avg Resolution</div>
             </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-primary">24/7</div>
-              <div className="text-xs text-muted-foreground">Support</div>
+            <div className="text-center p-4 bg-white rounded-2xl border border-[#E5E7EB]">
+              <div className="text-2xl font-bold text-[#10B65C]">24/7</div>
+              <div className="text-xs text-[#64748B]">Support</div>
             </div>
           </div>
         </motion.div>

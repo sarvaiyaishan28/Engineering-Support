@@ -119,12 +119,13 @@ export default function CreateTicketPage() {
           variant="ghost"
           size="icon"
           onClick={() => router.back()}
+          className="rounded-xl text-[#64748B] hover:text-[#0F172A] hover:bg-[#F3F4F6]"
         >
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Create Ticket</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl font-bold tracking-tight text-[#0F172A]">Create Ticket</h1>
+          <p className="text-[#64748B]">
             Submit a new engineering support ticket
           </p>
         </div>
@@ -132,9 +133,9 @@ export default function CreateTicketPage() {
 
       {/* Priority Warning */}
       {watchedPriority === 'CRITICAL' && (
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
+        <Alert className="bg-[#FEE2E2] border-[#EF4444]/30 rounded-xl">
+          <AlertCircle className="h-4 w-4 text-[#EF4444]" />
+          <AlertDescription className="text-[#DC2626]">
             Critical tickets have a 1-hour SLA response time. Please ensure this issue truly requires immediate attention.
           </AlertDescription>
         </Alert>
@@ -144,89 +145,94 @@ export default function CreateTicketPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
-            <Card>
+            <Card className="rounded-2xl border-[#E5E7EB]">
               <CardHeader>
-                <CardTitle>Ticket Details</CardTitle>
+                <CardTitle className="text-[#0F172A]">Ticket Details</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 {/* Title */}
                 <div className="space-y-2">
-                  <Label htmlFor="title">Title *</Label>
+                  <Label htmlFor="title" className="text-[#0F172A]">Title *</Label>
                   <Input
                     id="title"
                     placeholder="Brief summary of the issue"
                     {...register('title')}
+                    className="rounded-xl border-[#E5E7EB] focus:border-[#10B65C] focus:ring-[#10B65C]"
                   />
                   {errors.title && (
-                    <p className="text-sm text-destructive">{errors.title.message}</p>
+                    <p className="text-sm text-[#EF4444]">{errors.title.message}</p>
                   )}
                 </div>
 
                 {/* Description */}
                 <div className="space-y-2">
-                  <Label htmlFor="description">Description *</Label>
+                  <Label htmlFor="description" className="text-[#0F172A]">Description *</Label>
                   <Textarea
                     id="description"
                     placeholder="Provide a detailed description of the issue, including any error messages, expected behavior, and actual behavior..."
                     rows={6}
                     {...register('description')}
+                    className="rounded-xl border-[#E5E7EB] focus:border-[#10B65C] focus:ring-[#10B65C]"
                   />
                   {errors.description && (
-                    <p className="text-sm text-destructive">{errors.description.message}</p>
+                    <p className="text-sm text-[#EF4444]">{errors.description.message}</p>
                   )}
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-[#94A3B8]">
                     Supports Markdown formatting
                   </p>
                 </div>
 
                 {/* Steps to Reproduce */}
                 <div className="space-y-2">
-                  <Label htmlFor="stepsToReproduce">Steps to Reproduce</Label>
+                  <Label htmlFor="stepsToReproduce" className="text-[#0F172A]">Steps to Reproduce</Label>
                   <Textarea
                     id="stepsToReproduce"
                     placeholder="1. Go to...\n2. Click on...\n3. Observe..."
                     rows={4}
                     {...register('stepsToReproduce')}
+                    className="rounded-xl border-[#E5E7EB] focus:border-[#10B65C] focus:ring-[#10B65C]"
                   />
                 </div>
 
                 {/* Impact */}
                 <div className="space-y-2">
-                  <Label htmlFor="impact">Business Impact</Label>
+                  <Label htmlFor="impact" className="text-[#0F172A]">Business Impact</Label>
                   <Input
                     id="impact"
                     placeholder="e.g., Blocking 100 users, revenue loss estimated at $X/hour"
                     {...register('impact')}
+                    className="rounded-xl border-[#E5E7EB] focus:border-[#10B65C] focus:ring-[#10B65C]"
                   />
                 </div>
 
                 {/* Browser Info */}
                 <div className="space-y-2">
-                  <Label htmlFor="browserInfo">Browser/Environment Info</Label>
+                  <Label htmlFor="browserInfo" className="text-[#0F172A]">Browser/Environment Info</Label>
                   <Input
                     id="browserInfo"
                     placeholder="e.g., Chrome 120 on macOS Sonoma"
                     {...register('browserInfo')}
+                    className="rounded-xl border-[#E5E7EB] focus:border-[#10B65C] focus:ring-[#10B65C]"
                   />
                 </div>
               </CardContent>
             </Card>
 
             {/* Attachments */}
-            <Card>
+            <Card className="rounded-2xl border-[#E5E7EB]">
               <CardHeader>
-                <CardTitle>Attachments</CardTitle>
+                <CardTitle className="text-[#0F172A]">Attachments</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="border-2 border-dashed border-muted rounded-lg p-8 text-center">
-                  <Upload className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
-                  <p className="text-sm text-muted-foreground mb-2">
+                <div className="border-2 border-dashed border-[#E5E7EB] rounded-xl p-8 text-center hover:border-[#10B65C]/50 transition-colors">
+                  <Upload className="h-8 w-8 mx-auto text-[#94A3B8] mb-2" />
+                  <p className="text-sm text-[#64748B] mb-2">
                     Drag and drop files here, or click to browse
                   </p>
-                  <Button type="button" variant="outline" size="sm">
+                  <Button type="button" variant="outline" size="sm" className="rounded-xl border-[#E5E7EB]">
                     Choose Files
                   </Button>
-                  <p className="text-xs text-muted-foreground mt-2">
+                  <p className="text-xs text-[#94A3B8] mt-2">
                     Max 10MB per file. Supports images, PDFs, and logs.
                   </p>
                 </div>
@@ -236,26 +242,26 @@ export default function CreateTicketPage() {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            <Card>
+            <Card className="rounded-2xl border-[#E5E7EB]">
               <CardHeader>
-                <CardTitle>Classification</CardTitle>
+                <CardTitle className="text-[#0F172A]">Classification</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 {/* Priority */}
                 <div className="space-y-2">
-                  <Label>Priority *</Label>
+                  <Label className="text-[#0F172A]">Priority *</Label>
                   <Select
                     value={watch('priority')}
                     onValueChange={(v) => setValue('priority', v as Priority)}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="rounded-xl border-[#E5E7EB]">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="rounded-xl">
                       {Object.entries(priorityConfig).map(([key, config]) => (
                         <SelectItem key={key} value={key}>
                           <div className="flex items-center gap-2">
-                            <div className={`w-2 h-2 rounded-full ${key === 'CRITICAL' ? 'bg-red-500' : key === 'HIGH' ? 'bg-orange-500' : key === 'MEDIUM' ? 'bg-blue-500' : 'bg-slate-400'}`} />
+                            <div className={`w-2 h-2 rounded-full ${key === 'CRITICAL' ? 'bg-[#EF4444]' : key === 'HIGH' ? 'bg-[#F97316]' : key === 'MEDIUM' ? 'bg-[#3B82F6]' : 'bg-[#94A3B8]'}`} />
                             {config.label}
                           </div>
                         </SelectItem>
@@ -266,15 +272,15 @@ export default function CreateTicketPage() {
 
                 {/* Category */}
                 <div className="space-y-2">
-                  <Label>Category *</Label>
+                  <Label className="text-[#0F172A]">Category *</Label>
                   <Select
                     value={watch('category')}
                     onValueChange={(v) => setValue('category', v as Category)}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="rounded-xl border-[#E5E7EB]">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="rounded-xl">
                       {Object.entries(categoryConfig).map(([key, config]) => (
                         <SelectItem key={key} value={key}>{config.label}</SelectItem>
                       ))}
@@ -284,15 +290,15 @@ export default function CreateTicketPage() {
 
                 {/* Environment */}
                 <div className="space-y-2">
-                  <Label>Environment *</Label>
+                  <Label className="text-[#0F172A]">Environment *</Label>
                   <Select
                     value={watch('environment')}
                     onValueChange={(v) => setValue('environment', v as Environment)}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="rounded-xl border-[#E5E7EB]">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="rounded-xl">
                       {Object.entries(environmentConfig).map(([key, config]) => (
                         <SelectItem key={key} value={key}>{config.label}</SelectItem>
                       ))}
@@ -302,15 +308,15 @@ export default function CreateTicketPage() {
 
                 {/* Assignee */}
                 <div className="space-y-2">
-                  <Label>Assign to</Label>
+                  <Label className="text-[#0F172A]">Assign to</Label>
                   <Select
                     value={watch('assigneeId') || 'unassigned'}
                     onValueChange={(v) => setValue('assigneeId', v === 'unassigned' ? undefined : v)}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="rounded-xl border-[#E5E7EB]">
                       <SelectValue placeholder="Unassigned" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="rounded-xl">
                       <SelectItem value="unassigned">Unassigned</SelectItem>
                       {engineers.map((user) => (
                         <SelectItem key={user.id} value={user.id}>{user.name}</SelectItem>
@@ -322,9 +328,9 @@ export default function CreateTicketPage() {
             </Card>
 
             {/* Tags */}
-            <Card>
+            <Card className="rounded-2xl border-[#E5E7EB]">
               <CardHeader>
-                <CardTitle>Tags</CardTitle>
+                <CardTitle className="text-[#0F172A]">Tags</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex gap-2">
@@ -338,20 +344,26 @@ export default function CreateTicketPage() {
                         addTag()
                       }
                     }}
+                    className="rounded-xl border-[#E5E7EB] focus:border-[#10B65C] focus:ring-[#10B65C]"
                   />
-                  <Button type="button" variant="outline" onClick={addTag}>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={addTag}
+                    className="rounded-xl border-[#E5E7EB]"
+                  >
                     Add
                   </Button>
                 </div>
                 {tags.length > 0 && (
                   <div className="flex flex-wrap gap-2">
                     {tags.map((tag) => (
-                      <Badge key={tag} variant="secondary" className="gap-1">
+                      <Badge key={tag} className="gap-1 bg-[#F3F4F6] text-[#64748B] rounded-full">
                         {tag}
                         <button
                           type="button"
                           onClick={() => removeTag(tag)}
-                          className="ml-1 hover:text-destructive"
+                          className="ml-1 hover:text-[#EF4444]"
                         >
                           <X className="h-3 w-3" />
                         </button>
@@ -364,7 +376,11 @@ export default function CreateTicketPage() {
 
             {/* Actions */}
             <div className="flex flex-col gap-2">
-              <Button type="submit" disabled={isSubmitting} className="w-full">
+              <Button 
+                type="submit" 
+                disabled={isSubmitting} 
+                className="w-full rounded-xl bg-[#10B65C] hover:bg-[#0EA550] text-white"
+              >
                 {isSubmitting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -381,7 +397,7 @@ export default function CreateTicketPage() {
                 type="button"
                 variant="outline"
                 onClick={() => router.back()}
-                className="w-full"
+                className="w-full rounded-xl border-[#E5E7EB] text-[#64748B]"
               >
                 Cancel
               </Button>
